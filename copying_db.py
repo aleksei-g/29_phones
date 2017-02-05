@@ -17,10 +17,11 @@ def pull_data(from_db, to_db, tables):
         columns = table.columns.keys()
         print('Transferring records')
         for record in source_session.query(table).all():
-            data = dict(
-                [(str(column), getattr(record, column)) for column in columns]
+            data_record = dict(
+                               [(str(column), getattr(record, column))
+                                for column in columns]
             )
-            destination_source.merge(new_record(**data))
+            destination_source.merge(new_record(**data_record))
     print('Committing changes')
     destination_source.commit()
 
