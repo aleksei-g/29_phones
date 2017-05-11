@@ -10,10 +10,21 @@ PHONE_LENGTH = 10
 DELAY = 30
 
 
+def run_query(f):
+    def wrapper(*args, **kwargs):
+        try:
+            f(*args, **kwargs)
+            session.commit()
+        except SQLAlchemyError:
+            session.rollback()
+    return wrapper
+
+
 def get_normalized_phone(phone):
     return re.sub(r'\D', '', phone)[-PHONE_LENGTH:]
 
 
+@run_query
 def run_normalize(session, engine):
     meta = MetaData(bind=engine)
     table = Table('orders', meta, autoload=True)
@@ -28,11 +39,6 @@ if __name__ == '__main__':
     while True:
         try:
             run_normalize(session, engine)
-            session.commit()
-        except SQLAlchemyError:
-            session.rollback()
-            print('DB connection error!')
-        try:
             sleep(DELAY)
         except KeyboardInterrupt:
             print('exit')
